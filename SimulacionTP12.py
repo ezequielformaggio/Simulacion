@@ -26,6 +26,9 @@ CANTIDAD_ESPINACAS_X_M2 = 90
 CANTIDAD_MORRONES_X_M2 = 6
 GASTOS_EMPLEADO = 450000
 M2_POR_EMPLEADO = 1000
+COSECHA_REMANENTE_ZANAHORIA = 0
+COSECHA_REMANENTE_ESPINACA = 0
+COSECHA_REMANENTE_MORRON = 0
 
 # CONDICIONES INICIALES
 TIEMPO = 0
@@ -63,113 +66,133 @@ def generarIA() :
     else :
         return 13
 
-
-def llegada() :
-    global AP,MP,BP, ARREPENTIDOS, TIEMPO, TPLL, CONTADOR_DE_TAREAS, SUMATORIA_TPLL, SUMATORIA_TIEMPO_OSCIOSO, INICIO_TIEMPO_OSCIOSO, PUESTO, DIAS, CONTADOR_DE_TAREAS_TOTALES
-    TIEMPO = TPLL
-    SUMATORIA_TPLL += TPLL
-    TPLL = TIEMPO + generarIATA()
-    CONTADOR_DE_TAREAS_TOTALES += 1
-
-    if BP+MP+AP == CANTIDAD_DE_TAREAS_ASIGNABLES :
-        ARREPENTIDOS += 1
-        SUMATORIA_TPLL -= TPLL
-    else:
-        CONTADOR_DE_TAREAS += 1
-        R = random.random()
-        if R < 0.27 :
-            AP += 1
-            if BP+MP+AP <= CANTIDAD_DE_TESTERS :
-                puestoLibre = buscarHV()
-                SUMATORIA_TIEMPO_OSCIOSO[puestoLibre] += (TIEMPO - INICIO_TIEMPO_OSCIOSO[puestoLibre])
-                DIAS = generarTAAP()
-                TPS[puestoLibre] = TIEMPO + DIAS
-                VECTOR_PRIORIDADES[puestoLibre] = "AP"
-                DIAST[puestoLibre] += DIAS
-                PUESTO[puestoLibre] += 1
-        elif R < 0.58 :
-            MP += 1
-            if BP+MP+AP <= CANTIDAD_DE_TESTERS :
-                puestoLibre = buscarHV()
-                SUMATORIA_TIEMPO_OSCIOSO[puestoLibre] += (TIEMPO - INICIO_TIEMPO_OSCIOSO[puestoLibre])
-                DIAS = generarTAMP()
-                TPS[puestoLibre] = TIEMPO + DIAS
-                VECTOR_PRIORIDADES[puestoLibre] = "MP"
-                DIAST[puestoLibre] += DIAS
-                PUESTO[puestoLibre] += 1
-        else :
-            BP += 1
-            if BP+MP+AP <= CANTIDAD_DE_TESTERS :
-                puestoLibre = buscarHV()
-                SUMATORIA_TIEMPO_OSCIOSO[puestoLibre] += (TIEMPO - INICIO_TIEMPO_OSCIOSO[puestoLibre])
-                DIAS = generarTABP()
-                TPS[puestoLibre] = TIEMPO + DIAS
-                VECTOR_PRIORIDADES[puestoLibre] = "BP"
-                DIAST[puestoLibre] += DIAS
-                PUESTO[puestoLibre] += 1
 #################################################################
 
 # devuelve la cantidad de dias que tarda en crecer UNA semilla
 def fdp_tiempo_crecimiento_zanahoria() :
-    ...
+    return round(random.randint(55,90))
 
 def fdp_tiempo_crecimiento_espinaca() :
-    ...
+    return round(random.randint(40,50))
 
 def fdp_tiempo_crecimiento_morron() :
-    ...
+    return round(random.randint(98,140))
 
-# devuelve el porcentaje de taza de exito de un metro cuadrado?
-def fdp_tasa_de_exito_zanahoria_verano() :
-    ...
+# devuelven la cantidad de plantas cosechadas en el trimestre actual, hasta aca todo muy lindo pero, hay que tener en cuenta
+# que no se cosecha cada trimestre y eso, mas bien habria que tener un vector y ahi se vuelve aspera la cosa
 
-def fdp_tasa_de_exito_zanahoria_otonio() :
-    ...
+def cosecha_zanahoria() :
+    v = 0
+    cosecha = 0   
+    while (v < M2 * PORCENTAJE_TIERRA_ZANAHORIA * CANTIDAD_ZANAHORIAS_X_M2) :
+        if(fdp_tiempo_crecimiento_zanahoria > 90) :
+            COSECHA_REMANENTE_ZANAHORIA += fdp_kilos_zanahoria()
+        else : 
+            cosecha += fdp_kilos_zanahoria()
+    cosecha += COSECHA_REMANENTE_ZANAHORIA
+    COSECHA_REMANENTE_ZANAHORIA = 0
+    return cosecha
 
-def fdp_tasa_de_exito_zanahoria_invierno() :
-    ...
+def cosecha_espinaca() :
+    v = 0
+    cosecha = 0
+    tiempo_restante_temporada = 0
+    tiempo_actual = 0
+    
+    while (v < M2 * PORCENTAJE_TIERRA_ESPINACA * CANTIDAD_ESPINACAS_X_M2) :
+        tc = fdp_tiempo_crecimiento_espinaca()
+        
+        if(tc > tiempo_restante_temporada) :
+            COSECHA_REMANENTE_ESPINACA += fdp_kilos_espinaca()
+        else : 
+            cosecha += fdp_kilos_espinaca()
+        
+    cosecha += COSECHA_REMANENTE_ESPINACA
+    COSECHA_REMANENTE_ESPINACA = 0
+    return cosecha
 
-def fdp_tasa_de_exito_zanahoria_primavera() :
-    ...
+def cosecha_morron() :
+    v = 0
+    h = 0
+    cosecha = 0
+    morrones_totales = 0
 
-def fdp_tasa_de_exito_espinaca_verano() :
-    ...
+    while(v < M2 * PORCENTAJE_TIERRA_MORRON * CANTIDAD_MORRONES_X_M2) :
+        morrones_totales += fdp_cantidad_de_morrones_por_planta
+        v+=1
 
-def fdp_tasa_de_exito_espinaca_otonio() :
-    ...
+    while (morrones_totales) :
+        if(fdp_tiempo_crecimiento_morron > 90) :
+            COSECHA_REMANENTE_MORRON += fdp_kilos_morron()
+        else : 
+            cosecha += fdp_kilos_morron() 
 
-def fdp_tasa_de_exito_espinaca_invierno() :
-    ...
-
-def fdp_tasa_de_exito_espinaca_primavera() :
-    ...
-
-def fdp_tasa_de_exito_morron_verano() :
-    ...
-
-def fdp_tasa_de_exito_morron_otonio() :
-    ...
-
-def fdp_tasa_de_exito_morron_invierno() :
-    ...
-
-def fdp_tasa_de_exito_morron_primavera() :
-    ...
+    cosecha += COSECHA_REMANENTE_MORRON
+    COSECHA_REMANENTE_MORRON = 0
+    return cosecha
 
 
+# cosecha_de_###### devuelve la cantidad de kilos cosechados
+def fdp_kilos_zanahoria() :
+    return round(random.uniform(0.1,0.25))
+
+def fdp_kilos_espinaca() :
+    return round(random.uniform(0.02,0.05))
+
+def fdp_kilos_morron() :
+    return round(random.uniform(0.15,0.50))
+
+# devuelve el porcentaje de taza de exito de crecimiento de todas las semillas en un metro cuadrado
+def fdp_tasa_de_exito_zanahoria() :
+    t = TIEMPO % 4
+    if(t==0) :
+        return random.uniform(0.9,1.0)
+    elif(t==1) :
+        return random.uniform(0.9,1.0)
+    elif(t==2) :
+        return random.uniform(0.7,1.0)
+    elif(t==3) :
+        return random.uniform(0.7,1.0)
+
+def fdp_tasa_de_exito_espinaca() :
+    t = TIEMPO % 4
+    if(t==0) :
+        return random.uniform(0.9,1.0)
+    elif(t==1) :
+        return random.uniform(0.9,1.0)
+    elif(t==2) :
+        return random.uniform(0.7,1.0)
+    elif(t==3) :
+        return random.uniform(0.7,1.0)
+
+def fdp_tasa_de_exito_morron() :
+    t = TIEMPO % 4
+    if(t==0) :
+        return random.uniform(0.9,1.0)
+    elif(t==1) :
+        return random.uniform(0.7,1.0)
+    elif(t==2) :
+        return random.uniform(0.0,0.15)
+    elif(t==3) :
+        return random.uniform(0.0,0.05)
+
+def fdp_cantidad_de_morrones_por_planta() :
+    return random.randint(3,15)
+ 
 # devuelve la cantidad de dias que se tuvo que regar ese trimestre
 def fdp_riego() :
     ...
 
-# cosecha_de_###### devuelve la cantidad de kilos cosechados
-def cosecha_de_zanahoria() :
-    ...
-
-def cosecha_de_espinaca() :
-    ...
-
-def cosecha_de_morron() :
-    ...
+def fdp_lluvias() :
+    t = TIEMPO % 4
+    if(t==0) :
+        return random.uniform(0.0,0.35)
+    elif(t==1) :
+        return random.uniform(0.0,0.24)
+    elif(t==2) :
+        return random.uniform(0.0,0.17)
+    elif(t==3) :
+        return random.uniform(0.0,0.29)
 
 # devuelve el gasto de empleados segun metros cuadrados
 def gasto_por_empleados() :
