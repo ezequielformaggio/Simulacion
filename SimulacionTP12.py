@@ -5,145 +5,97 @@ from tkinter import ROUND
 PORCENTAJE_TIERRA_ZANAHORIA = 15
 PORCENTAJE_TIERRA_ESPINACA = 55
 PORCENTAJE_TIERRA_MORRON = 30
-M2 = 4
+M2 = 1000
+# una hectarea son 10.000 m2
 
-# VARIABLES DE ESTADO
+# VARIABLE DE ESTADO
 BENEFICIO = 0
+GASTO = 0
 
 # VARIABLES GENERALES
-PRECIO_KILO_ZANAHORIA = 0
-PRECIO_KILO_ESPINACA = 0
-PRECIO_KILO_MORRON = 0
-PRECIO_M2_FERTILIZANTE_ZANAHORIA = 0
-PRECIO_M2_FERTILIZANTE_ESPINACA = 0
-PRECIO_M2_FERTILIZANTE_MORRON = 0
-PRECIO_M2_INSECTICIDA_ZANAHORIA = 0
-PRECIO_M2_INSECTICIDA_ESPINACA = 0
-PRECIO_M2_INSECTICIDA_MORRON = 0
-PRECIO_M2_DE_RIEGO_DIARIO = 0
+PRECIO_KILO_ZANAHORIA = 15
+PRECIO_KILO_ESPINACA = 10
+PRECIO_KILO_MORRON = 40
+PRECIO_M2_FERTILIZANTE_ZANAHORIA = 600
+PRECIO_M2_FERTILIZANTE_ESPINACA = 600
+PRECIO_M2_FERTILIZANTE_MORRON = 600
+PRECIO_M2_INSECTICIDA_ZANAHORIA = 500
+PRECIO_M2_INSECTICIDA_ESPINACA = 500
+PRECIO_M2_INSECTICIDA_MORRON = 500
+PRECIO_M2_DE_RIEGO_DIARIO = 800
 CANTIDAD_ZANAHORIAS_X_M2 = 144
 CANTIDAD_ESPINACAS_X_M2 = 90
 CANTIDAD_MORRONES_X_M2 = 6
-GASTOS_EMPLEADO = 450000
-M2_POR_EMPLEADO = 1000
-COSECHA_REMANENTE_ZANAHORIA = 0
-COSECHA_REMANENTE_ESPINACA = 0
-COSECHA_REMANENTE_MORRON = 0
+GASTOS_POR_MAQUINA_POR_HECTAREA = 10000
+INTERVALO_DE_RIEGO = 2
 
 # CONDICIONES INICIALES
-TIEMPO = 0
-TIEMPO_FINAL = 1000
-
-# LAS DEJE PARA VER LA SINTAXIS DE PHYTON NOMAS #################
-def generarIA() :
-    R = random.random()
-    if(R < 0.0203) :
-        return 0
-    elif(R < 0.0996) :
-        return 1
-    elif(R < 0.254) :
-        return 2
-    elif(R < 0.4544) :
-        return 3
-    elif(R < 0.6495) :
-        return 4
-    elif(R < 0.8014) :
-        return 5
-    elif(R < 0.9) :
-        return 6
-    elif(R < 0.9549) :
-        return 7
-    elif(R < 0.9816) :
-        return 8
-    elif(R < 0.9932) :
-        return 9
-    elif(R < 0.9977) :
-        return 10
-    elif(R < 0.9993) :
-        return 11
-    elif(R < 0.9998) :
-        return 12
-    else :
-        return 13
-
-#################################################################
-
-# devuelve la cantidad de dias que tarda en crecer UNA semilla
-def fdp_tiempo_crecimiento_zanahoria() :
-    return round(random.randint(55,90))
-
-def fdp_tiempo_crecimiento_espinaca() :
-    return round(random.randint(40,50))
-
-def fdp_tiempo_crecimiento_morron() :
-    return round(random.randint(98,140))
+TIEMPO = 1
+TIEMPO_FINAL = 10
 
 # devuelven la cantidad de plantas cosechadas en el trimestre actual, hasta aca todo muy lindo pero, hay que tener en cuenta
 # que no se cosecha cada trimestre y eso, mas bien habria que tener un vector y ahi se vuelve aspera la cosa
 
 def cosecha_zanahoria() :
-    v = 0
+    i = 0
+    plantas = round(M2 * PORCENTAJE_TIERRA_ZANAHORIA * CANTIDAD_ZANAHORIAS_X_M2 * tasa_de_exito_zanahoria())
     cosecha = 0   
-    while (v < M2 * PORCENTAJE_TIERRA_ZANAHORIA * CANTIDAD_ZANAHORIAS_X_M2) :
-        if(fdp_tiempo_crecimiento_zanahoria > 90) :
-            COSECHA_REMANENTE_ZANAHORIA += fdp_kilos_zanahoria()
-        else : 
-            cosecha += fdp_kilos_zanahoria()
-    cosecha += COSECHA_REMANENTE_ZANAHORIA
-    COSECHA_REMANENTE_ZANAHORIA = 0
+    while (i < plantas) :
+        cosecha += fdp_kilos_zanahoria()
+        i+=1
     return cosecha
 
 def cosecha_espinaca() :
-    v = 0
+    i = 0
+    intervalo_de_cosecha = 50
+    plantas = round(M2 * PORCENTAJE_TIERRA_ESPINACA * CANTIDAD_ESPINACAS_X_M2 * tasa_de_exito_espinaca())
     cosecha = 0
-    tiempo_restante_temporada = 0
-    tiempo_actual = 0
+    ultima_cosecha = 0
     
-    while (v < M2 * PORCENTAJE_TIERRA_ESPINACA * CANTIDAD_ESPINACAS_X_M2) :
-        tc = fdp_tiempo_crecimiento_espinaca()
-        
-        if(tc > tiempo_restante_temporada) :
-            COSECHA_REMANENTE_ESPINACA += fdp_kilos_espinaca()
-        else : 
-            cosecha += fdp_kilos_espinaca()
-        
-    cosecha += COSECHA_REMANENTE_ESPINACA
-    COSECHA_REMANENTE_ESPINACA = 0
+    while ((TIEMPO * 90) > (ultima_cosecha + intervalo_de_cosecha)) :
+        while (i < plantas) :
+            cosecha += fdp_kilos_espinaca()  
+            i+=1      
+        ultima_cosecha += intervalo_de_cosecha
+
     return cosecha
 
 def cosecha_morron() :
-    v = 0
-    h = 0
+    i = 0
+    j = 0
+    intervalo_de_cosecha = 140
+    plantas = round(M2 * PORCENTAJE_TIERRA_MORRON * CANTIDAD_MORRONES_X_M2)
     cosecha = 0
     morrones_totales = 0
+    ultima_cosecha = 0
 
-    while(v < M2 * PORCENTAJE_TIERRA_MORRON * CANTIDAD_MORRONES_X_M2) :
-        morrones_totales += fdp_cantidad_de_morrones_por_planta
-        v+=1
+    while(i < plantas) :
+        morrones_totales += fdp_cantidad_de_morrones_por_planta()
+        i+=1
 
-    while (morrones_totales) :
-        if(fdp_tiempo_crecimiento_morron > 90) :
-            COSECHA_REMANENTE_MORRON += fdp_kilos_morron()
-        else : 
-            cosecha += fdp_kilos_morron() 
+    while ((TIEMPO * 90) > (ultima_cosecha + intervalo_de_cosecha)) :
+        while (j < morrones_totales) :
+            cosecha += fdp_kilos_morron()  
+            j+=1      
+        ultima_cosecha += intervalo_de_cosecha
 
-    cosecha += COSECHA_REMANENTE_MORRON
-    COSECHA_REMANENTE_MORRON = 0
     return cosecha
 
+def fdp_cantidad_de_morrones_por_planta() :
+    return random.randint(3,15)
 
 # cosecha_de_###### devuelve la cantidad de kilos cosechados
 def fdp_kilos_zanahoria() :
-    return round(random.uniform(0.1,0.25))
+    return random.uniform(0.1,0.25)
 
 def fdp_kilos_espinaca() :
-    return round(random.uniform(0.02,0.05))
+    return random.uniform(0.02,0.05)
 
 def fdp_kilos_morron() :
-    return round(random.uniform(0.15,0.50))
+    return random.uniform(0.15,0.50)
 
 # devuelve el porcentaje de taza de exito de crecimiento de todas las semillas en un metro cuadrado
-def fdp_tasa_de_exito_zanahoria() :
+def tasa_de_exito_zanahoria() :
     t = TIEMPO % 4
     if(t==0) :
         return random.uniform(0.9,1.0)
@@ -154,7 +106,7 @@ def fdp_tasa_de_exito_zanahoria() :
     elif(t==3) :
         return random.uniform(0.7,1.0)
 
-def fdp_tasa_de_exito_espinaca() :
+def tasa_de_exito_espinaca() :
     t = TIEMPO % 4
     if(t==0) :
         return random.uniform(0.9,1.0)
@@ -165,7 +117,7 @@ def fdp_tasa_de_exito_espinaca() :
     elif(t==3) :
         return random.uniform(0.7,1.0)
 
-def fdp_tasa_de_exito_morron() :
+def tasa_de_exito_morron() :
     t = TIEMPO % 4
     if(t==0) :
         return random.uniform(0.9,1.0)
@@ -176,14 +128,53 @@ def fdp_tasa_de_exito_morron() :
     elif(t==3) :
         return random.uniform(0.0,0.05)
 
-def fdp_cantidad_de_morrones_por_planta() :
+def cantidad_de_morrones_por_planta() :
     return random.randint(3,15)
- 
-# devuelve la cantidad de dias que se tuvo que regar ese trimestre
-def fdp_riego() :
-    ...
 
-def fdp_lluvias() :
+# devuelven la cantidad de veces que se tuvo que fertilizar
+def fdp_fertilizante_zanahoria() :
+    return 5
+
+def fdp_fertilizante_espinaca() :
+    return 5
+
+def fdp_fertilizante_morron() :
+    return 5
+
+def fdp_insecticida_zanahoria() :
+    return 5
+
+def fdp_insecticida_espinaca() :
+    return 5
+
+def fdp_insecticida_morron() :
+    return 5
+
+def gastos_por_riego() :
+    contador = 0
+    dias = 0
+    j = 0
+    llueve = False
+
+    while (dias < 90) :
+        while (j < INTERVALO_DE_RIEGO) :
+            if(hoy_llueve()) :
+                llueve = True
+            j+=1
+        if(llueve == False) :
+            contador += 1
+        llueve = False
+        j = 0
+        dias += INTERVALO_DE_RIEGO
+    return dias * PRECIO_M2_DE_RIEGO_DIARIO * M2
+            
+def hoy_llueve() :
+    if (random.random() < probabilidad_lluvia()) :
+        return True
+    else : 
+        return False
+
+def probabilidad_lluvia() :
     t = TIEMPO % 4
     if(t==0) :
         return random.uniform(0.0,0.35)
@@ -193,46 +184,27 @@ def fdp_lluvias() :
         return random.uniform(0.0,0.17)
     elif(t==3) :
         return random.uniform(0.0,0.29)
-
-# devuelve el gasto de empleados segun metros cuadrados
-def gasto_por_empleados() :
-    return ROUND(M2 / M2_POR_EMPLEADO) * GASTOS_EMPLEADO
-
-# devuelven la cantidad de veces que se tuvo que fertilizar
-def fdp_fertilizante_zanahoria() :
-    ...
-
-def fdp_fertilizante_espinaca() :
-    ...
-
-def fdp_fertilizante_morron() :
-    ...
-
-def fdp_insecticida_zanahoria() :
-    ...
-
-def fdp_insecticida_espinaca() :
-    ...
-
-def fdp_insecticida_morron() :
-    ...
+    
+def gasto_por_cosechadora() :
+    return 500 * M2
     
 #---------------------------- Programa Principal -------------------------------------------
 
 while TIEMPO < TIEMPO_FINAL :
     
-    BENEFICIO += cosecha_de_zanahoria() * PRECIO_KILO_ZANAHORIA 
-    + cosecha_de_espinaca() * PRECIO_KILO_ESPINACA 
-    + cosecha_de_morron() * PRECIO_KILO_MORRON
+    BENEFICIO += round(cosecha_zanahoria() * PRECIO_KILO_ZANAHORIA 
+    + cosecha_espinaca() * PRECIO_KILO_ESPINACA 
+    + cosecha_morron() * PRECIO_KILO_MORRON)
 
-    BENEFICIO -= (fdp_riego * PRECIO_M2_DE_RIEGO_DIARIO 
+    GASTO -= ((gastos_por_riego() 
                   + fdp_fertilizante_zanahoria() * PRECIO_M2_FERTILIZANTE_ZANAHORIA
                   + fdp_fertilizante_espinaca() * PRECIO_M2_FERTILIZANTE_ESPINACA
                   + fdp_fertilizante_morron() * PRECIO_M2_FERTILIZANTE_MORRON
                   + fdp_insecticida_zanahoria() * PRECIO_M2_INSECTICIDA_ZANAHORIA
                   + fdp_insecticida_espinaca() * PRECIO_M2_INSECTICIDA_ESPINACA
-                  + fdp_insecticida_morron() * PRECIO_M2_INSECTICIDA_MORRON) * M2 + gasto_por_empleados()
+                  + fdp_insecticida_morron() * PRECIO_M2_INSECTICIDA_MORRON) * M2) 
+    + gasto_por_cosechadora()
 
-    TIEMPO += TIEMPO
+    TIEMPO += 1
 
-print("Beneficio anual: %d", BENEFICIO/TIEMPO/4)
+print("Beneficio anual: %d", (BENEFICIO-GASTO)/TIEMPO/4)
