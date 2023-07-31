@@ -1,4 +1,4 @@
-import random
+import random, math
 from tkinter import ROUND
 
 # VARIABLES DE CONTROL
@@ -35,7 +35,7 @@ GASTOS_POR_MAQUINA_POR_HECTAREA = 15000
 
 # CONDICIONES INICIALES
 TIEMPO = 0
-TIEMPO_FINAL = 5
+TIEMPO_FINAL = 250
 
 def cantidad_de_morrones_por_planta() :
     return random.randint(3,15)
@@ -211,16 +211,17 @@ DIA_PROXIMA_COSECHA_MORRON = 0
 MORRONES_CRECIENDO = False
 PORCENTAJE_MORRONES_VIVOS = 0
 PROXIMO_RIEGO_MORRON = 0
+T_PROXIMA_COSECHA_MORRON = 0
 
 def cosecha_morron() :
     i = 0
-    global DIA_PROXIMA_COSECHA_MORRON
+    global T_PROXIMA_COSECHA_MORRON
 
     while(i < 90):
         if(MORRONES_CRECIENDO == False or PORCENTAJE_MORRONES_VIVOS < 0.65) :
             plantar_morron(i)
         
-        if(i == DIA_PROXIMA_COSECHA_MORRON) :
+        if(i == DIA_PROXIMA_COSECHA_MORRON and TIEMPO == T_PROXIMA_COSECHA_MORRON) :
             cosechar_morron()
             plantar_morron(i)
 
@@ -230,15 +231,17 @@ def cosecha_morron() :
         i+=1
 
 def plantar_morron(i) :
-    global DIA_PROXIMA_COSECHA_MORRON, GASTO, MORRONES_CRECIENDO, PORCENTAJE_MORRONES_VIVOS
+    global DIA_PROXIMA_COSECHA_MORRON, GASTO, MORRONES_CRECIENDO, PORCENTAJE_MORRONES_VIVOS, T_PROXIMA_COSECHA_MORRON
     tasa_exito = tasa_de_exito_morron()
     if(tasa_exito > 0.65) :
-        DIA_PROXIMA_COSECHA_MORRON = i + 140 - 90 # i muy grande se pasa de trimestre
+        T_PROXIMA_COSECHA_MORRON = math.trunc(i + 140/90)
+        DIA_PROXIMA_COSECHA_MORRON = (i + 140) % 90 
         MORRONES_CRECIENDO = True
         PORCENTAJE_MORRONES_VIVOS = tasa_exito
         GASTO += PRECIO_M2_SEMILLAS_MORRON * M2 * PORCENTAJE_TIERRA_MORRON
     else :
         MORRONES_CRECIENDO = False
+        T_PROXIMA_COSECHA_MORRON = 9999
         DIA_PROXIMA_COSECHA_MORRON = 9999
 
 def cosechar_morron() :
@@ -295,11 +298,9 @@ def afectar_plantaciones_por_granizo(tipo_cultivo, hoy) :
     elif(tipo_cultivo == "M") :
         PORCENTAJE_MORRONES_VIVOS -= PORCENTAJE_MORRONES_VIVOS * (LLUVIAS_Y_GRANIZO[hoy] - 1)
     
-LLUVIAS_Y_GRANIZO = [0] * 90
-
 def generador_de_lluvias() :
     i = 0
-    global LLUVIAS_Y_GRANIZO
+    global LLUVIAS_Y_GRANIZO, CONTADOR_DE_GRANIZO
 
     while(i < 90) :
         if (random.random() < probabilidad_lluvia()) :
@@ -323,11 +324,10 @@ def probabilidad_lluvia() :
     elif(t==3) :
         return random.uniform(0.0,0.29)
 
-
 ########################################### PROGRAMA PRINCIPAL ############################################
 
 while TIEMPO < TIEMPO_FINAL :
-
+    LLUVIAS_Y_GRANIZO = [0] * 90
     generador_de_lluvias()
 
     cosecha_zanahoria() 
