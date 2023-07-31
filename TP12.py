@@ -452,6 +452,3 @@ def escenarios() :
         i += 1
 
 escenarios()
-
-
-
