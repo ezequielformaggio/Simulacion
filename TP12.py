@@ -1,4 +1,6 @@
 import random, math
+from scipy.stats import poisson, norm
+
 from tkinter import ROUND
 
 # VARIABLES DE CONTROL
@@ -16,26 +18,26 @@ GASTO = 0
 TIEMPO = 0
 TIEMPO_FINAL = 250
 
-def contratar_cosechadora(metros, tipo_cultivo) :
+def contratar_cosechadora(hectareas, tipo_cultivo) :
     global GASTO 
-    sumar_gasto_cosechadora(tipo_cultivo, metros)
-    GASTO += (metros / 10000) * GASTOS_POR_MAQUINA_POR_HECTAREA
+    sumar_gasto_cosechadora(tipo_cultivo, hectareas)
+    GASTO += hectareas * GASTOS_POR_MAQUINA_POR_HECTAREA
 
-def sumar_gasto_cosechadora(tipo_cultivo, metros) :
+def sumar_gasto_cosechadora(tipo_cultivo, hectareas) :
     global GASTO_ZANAHORIA, GASTO_ESPINACA, GASTO_MORRON
     if(tipo_cultivo == "Z") :
-        GASTO_ZANAHORIA += (metros / 10000) * GASTOS_POR_MAQUINA_POR_HECTAREA
+        GASTO_ZANAHORIA += (hectareas) * GASTOS_POR_MAQUINA_POR_HECTAREA
     elif(tipo_cultivo == "E") :
-        GASTO_ESPINACA += (metros / 10000) * GASTOS_POR_MAQUINA_POR_HECTAREA
+        GASTO_ESPINACA += (hectareas) * GASTOS_POR_MAQUINA_POR_HECTAREA
     elif(tipo_cultivo == "M") :
-        GASTO_MORRON += (metros / 10000) * GASTOS_POR_MAQUINA_POR_HECTAREA
+        GASTO_MORRON += (hectareas) * GASTOS_POR_MAQUINA_POR_HECTAREA
 
 ###################################################### ZANAHORIA ########################################################
 PRECIO_M2_FERTILIZANTE_ZANAHORIA = 70
 PRECIO_M2_INSECTICIDA_ZANAHORIA = 70
 DIA_PROXIMA_COSECHA_ZANAHORIA = 0
 PRECIO_M2_SEMILLAS_ZANAHORIA = 5
-INTERVALO_COSECHA_ZANAHORIA = 89
+INTERVALO_COSECHA_ZANAHORIA = 87
 PORCENTAJE_ZANAHORIAS_VIVAS = 0
 T_PROXIMA_COSECHA_ZANAHORIA = 0
 CANTIDAD_ZANAHORIAS_X_M2 = 144
@@ -53,7 +55,7 @@ def cosecha_zanahoria() :
         if(ZANAHORIAS_CRECIENDO == False or PORCENTAJE_ZANAHORIAS_VIVAS < 0.65) :
             plantar_zanahoria(i)
         
-        if(i == DIA_PROXIMA_COSECHA_ZANAHORIA) :
+        if(i == DIA_PROXIMA_COSECHA_ZANAHORIA and TIEMPO == T_PROXIMA_COSECHA_ZANAHORIA) :
             cosechar_zanahoria()
             plantar_zanahoria(i)
 
@@ -65,8 +67,8 @@ def cosecha_zanahoria() :
 def plantar_zanahoria(i) :
     global DIA_PROXIMA_COSECHA_ZANAHORIA, GASTO, ZANAHORIAS_CRECIENDO, PORCENTAJE_ZANAHORIAS_VIVAS, T_PROXIMA_COSECHA_ZANAHORIA, GASTO_ZANAHORIA
     tasa_exito = tasa_de_exito_zanahoria()
-    if(tasa_exito > 0.65) :
-        T_PROXIMA_COSECHA_ZANAHORIA = math.trunc(i + INTERVALO_COSECHA_ZANAHORIA/90)
+    if(tasa_exito > 0.65 and PORCENTAJE_TIERRA_ZANAHORIA > 0) :
+        T_PROXIMA_COSECHA_ZANAHORIA = math.trunc((i + INTERVALO_COSECHA_ZANAHORIA )/90) + TIEMPO
         DIA_PROXIMA_COSECHA_ZANAHORIA = (i + INTERVALO_COSECHA_ZANAHORIA) % 90 
         ZANAHORIAS_CRECIENDO = True
         PORCENTAJE_ZANAHORIAS_VIVAS = tasa_exito
@@ -74,22 +76,26 @@ def plantar_zanahoria(i) :
         GASTO_ZANAHORIA += PRECIO_M2_SEMILLAS_ZANAHORIA * M2 * PORCENTAJE_TIERRA_ZANAHORIA
     else :
         ZANAHORIAS_CRECIENDO = False
-        DIA_PROXIMA_COSECHA_ZANAHORIA = 9999
+        if(PORCENTAJE_TIERRA_ZANAHORIA > 0) :
+            DIA_PROXIMA_COSECHA_ZANAHORIA = 9999
 
 def cosechar_zanahoria() :
     global BENEFICIO, BENEFICIO_ZANAHORIA
-    hectareas = round(M2 * PORCENTAJE_TIERRA_ZANAHORIA * PORCENTAJE_ZANAHORIAS_VIVAS / 10000)
+    hectareas = (M2 * PORCENTAJE_TIERRA_ZANAHORIA * PORCENTAJE_ZANAHORIAS_VIVAS / 10000)
     cosecha = 0
     i = 0
     while (i < hectareas) :
-        cosecha += fdp_kilos_zanahoria() * CANTIDAD_ZANAHORIAS_X_M2 * 10000
+        kilos = fdp_kilos_zanahoria()
+        if(kilos < 0) :
+            kilos = kilos * -1
+        cosecha += CANTIDAD_ZANAHORIAS_X_M2 * 10000 * kilos
         i+=1
     contratar_cosechadora(M2 * PORCENTAJE_TIERRA_ZANAHORIA / 10000, "Z")
     BENEFICIO += cosecha * PRECIO_KILO_ZANAHORIA 
     BENEFICIO_ZANAHORIA += cosecha * PRECIO_KILO_ZANAHORIA 
 
 def fdp_kilos_zanahoria() :
-    return random.uniform(0.1,0.25)
+    return poisson.rvs(220.82, size=1)[0] / 1000
 
 def tasa_de_exito_zanahoria() :
     t = TIEMPO % 4
@@ -131,20 +137,19 @@ def cosecha_espinaca() :
         if(ESPINACAS_CRECIENDO == False or PORCENTAJE_ESPINACAS_VIVAS < 0.65) :
             plantar_espinaca(i)
         
-        if(i == DIA_PROXIMA_COSECHA_ESPINACA) :
+        if(i == DIA_PROXIMA_COSECHA_ESPINACA and TIEMPO == T_PROXIMA_COSECHA_ESPINACA) :
             cosechar_espinaca()
             plantar_espinaca(i)
 
         if(ESPINACAS_CRECIENDO == True and PORCENTAJE_ESPINACAS_VIVAS > 0.65) :
             gastos_por_riego(M2 * PORCENTAJE_TIERRA_ESPINACA, i, "E")
-        
         i+=1
 
 def plantar_espinaca(i) :
     global DIA_PROXIMA_COSECHA_ESPINACA, GASTO, ESPINACAS_CRECIENDO, PORCENTAJE_ESPINACAS_VIVAS, T_PROXIMA_COSECHA_ESPINACA, GASTO_ESPINACA 
     tasa_exito = tasa_de_exito_espinaca()
-    if(tasa_exito > 0.65) :
-        T_PROXIMA_COSECHA_ESPINACA = math.trunc(i + INTERVALO_COSECHA_ESPINACA/90)
+    if(tasa_exito > 0.65 and PORCENTAJE_TIERRA_ESPINACA > 0) :
+        T_PROXIMA_COSECHA_ESPINACA = math.trunc((i + INTERVALO_COSECHA_ESPINACA)/90) + TIEMPO
         DIA_PROXIMA_COSECHA_ESPINACA = (i + INTERVALO_COSECHA_ESPINACA) % 90 
         ESPINACAS_CRECIENDO = True
         PORCENTAJE_ESPINACAS_VIVAS = tasa_exito
@@ -152,22 +157,26 @@ def plantar_espinaca(i) :
         GASTO_ESPINACA += PRECIO_M2_SEMILLAS_ESPINACA * M2 * PORCENTAJE_TIERRA_ESPINACA
     else :
         ESPINACAS_CRECIENDO = False
-        DIA_PROXIMA_COSECHA_ESPINACA = 9999
+        if(PORCENTAJE_TIERRA_ESPINACA > 0) :
+            DIA_PROXIMA_COSECHA_ESPINACA = 9999
 
 def cosechar_espinaca() :
     global BENEFICIO, BENEFICIO_ESPINACA
-    hectareas = round(M2 * PORCENTAJE_TIERRA_ESPINACA * PORCENTAJE_ESPINACAS_VIVAS / 10000)
+    hectareas = (M2 * PORCENTAJE_TIERRA_ESPINACA * PORCENTAJE_ESPINACAS_VIVAS / 10000)
     cosecha = 0
     i = 0
     while (i < hectareas) :
-        cosecha += fdp_kilos_espinaca() * CANTIDAD_ESPINACAS_X_M2 * 10000
+        kilos = fdp_kilos_espinaca()
+        if(kilos < 0) :
+            kilos = kilos * -1
+        cosecha += CANTIDAD_ESPINACAS_X_M2 * 10000 *  kilos
         i+=1
     contratar_cosechadora(M2 * PORCENTAJE_TIERRA_ESPINACA / 10000, "E")
     BENEFICIO += cosecha * PRECIO_KILO_ESPINACA
     BENEFICIO_ESPINACA += cosecha * PRECIO_KILO_ESPINACA
     
 def fdp_kilos_espinaca() :
-    return random.uniform(0.02,0.05)
+    return norm.rvs(3.0875, 40.049,size=1)[0] / 1000
 
 def tasa_de_exito_espinaca() :
     t = TIEMPO % 4
@@ -221,8 +230,8 @@ def cosecha_morron() :
 def plantar_morron(i) :
     global DIA_PROXIMA_COSECHA_MORRON, GASTO, MORRONES_CRECIENDO, PORCENTAJE_MORRONES_VIVOS, T_PROXIMA_COSECHA_MORRON, GASTO_MORRON
     tasa_exito = tasa_de_exito_morron()
-    if(tasa_exito > 0.65) :
-        T_PROXIMA_COSECHA_MORRON = math.trunc(i + INTERVALO_COSECHA_MORRON/90)
+    if(tasa_exito > 0.65 and PORCENTAJE_TIERRA_MORRON > 0) :
+        T_PROXIMA_COSECHA_MORRON = math.trunc(i + INTERVALO_COSECHA_MORRON/90) + TIEMPO
         DIA_PROXIMA_COSECHA_MORRON = (i + INTERVALO_COSECHA_MORRON) % 90 
         MORRONES_CRECIENDO = True
         PORCENTAJE_MORRONES_VIVOS = tasa_exito
@@ -230,23 +239,27 @@ def plantar_morron(i) :
         GASTO_MORRON += PRECIO_M2_SEMILLAS_MORRON * M2 * PORCENTAJE_TIERRA_MORRON
     else :
         MORRONES_CRECIENDO = False
-        T_PROXIMA_COSECHA_MORRON = 9999
-        DIA_PROXIMA_COSECHA_MORRON = 9999
+        if(PORCENTAJE_TIERRA_ESPINACA > 0) :
+            T_PROXIMA_COSECHA_MORRON = 9999
+            DIA_PROXIMA_COSECHA_MORRON = 9999
 
 def cosechar_morron() :
     global BENEFICIO, BENEFICIO_MORRON
-    hectareas = round(M2 * PORCENTAJE_TIERRA_MORRON * PORCENTAJE_MORRONES_VIVOS / 10000)
+    hectareas = (M2 * PORCENTAJE_TIERRA_MORRON * PORCENTAJE_MORRONES_VIVOS / 10000)
     cosecha = 0
     i = 0
     while (i < hectareas) :
-        cosecha += fdp_kilos_morron() * CANTIDAD_MORRONES_X_M2 * 10000
+        kilos = fdp_kilos_morron()
+        if(kilos < 0) :
+            kilos = kilos * -1
+        cosecha += CANTIDAD_MORRONES_X_M2 * 10000 * kilos
         i+=1
     contratar_cosechadora(M2 * PORCENTAJE_TIERRA_MORRON / 10000, "M")
     BENEFICIO += cosecha * PRECIO_KILO_MORRON
     BENEFICIO_MORRON += cosecha * PRECIO_KILO_MORRON
 
 def fdp_kilos_morron() :
-    return random.uniform(0.15,0.50)
+    return poisson.rvs(371.15, size=1)[0] / 1000
 
 def tasa_de_exito_morron() :
     t = TIEMPO % 4
@@ -260,7 +273,7 @@ def tasa_de_exito_morron() :
         return random.uniform(0.66,1.0)
 
 def cantidad_de_morrones_por_planta() :
-    return random.randint(3,15)
+    return random.randint(3,15)#norm.rvs(14.927, 220.82, size=1)[0] 
 
 def fdp_fertilizante_morron() :
     return 5
@@ -327,7 +340,7 @@ def afectar_plantaciones_por_granizo(tipo_cultivo, hoy) :
     
 def generador_de_lluvias() :
     i = 0
-    global LLUVIAS_Y_GRANIZO, CONTADOR_DE_GRANIZO
+    global LLUVIAS_Y_GRANIZO
 
     while(i < 90) :
         if (random.random() < probabilidad_lluvia()) :
@@ -371,6 +384,10 @@ def resetear_escenario() :
     global BENEFICIO, BENEFICIO_ZANAHORIA, BENEFICIO_ESPINACA, BENEFICIO_MORRON, TIEMPO
     global GASTO, GASTO_ZANAHORIA, GASTO_ESPINACA, GASTO_MORRON
     global MAYOR_GANANCIA, MENOR_GANANCIA
+    global ZANAHORIAS_CRECIENDO, ESPINACAS_CRECIENDO, MORRONES_CRECIENDO, PROXIMO_RIEGO_ESPINACA, PROXIMO_RIEGO_ZANAHORIA, PROXIMO_RIEGO_MORRON
+    global T_PROXIMA_COSECHA_ZANAHORIA, T_PROXIMA_COSECHA_ESPINACA, T_PROXIMA_COSECHA_MORRON
+    global DIA_PROXIMA_COSECHA_ZANAHORIA, DIA_PROXIMA_COSECHA_ESPINACA, DIA_PROXIMA_COSECHA_MORRON
+    global PORCENTAJE_ESPINACAS_VIVAS, PORCENTAJE_MORRONES_VIVOS, PORCENTAJE_ZANAHORIAS_VIVAS
     TIEMPO = 0
     BENEFICIO = 0
     BENEFICIO_ZANAHORIA = 0
@@ -382,6 +399,21 @@ def resetear_escenario() :
     GASTO_MORRON = 0
     MAYOR_GANANCIA = [0,0]
     MENOR_GANANCIA = [9999999999999999999999999,0]
+    ZANAHORIAS_CRECIENDO = False
+    ESPINACAS_CRECIENDO = False
+    MORRONES_CRECIENDO = False
+    PROXIMO_RIEGO_ESPINACA = 0
+    PROXIMO_RIEGO_ZANAHORIA = 0
+    PROXIMO_RIEGO_MORRON = 0
+    T_PROXIMA_COSECHA_ZANAHORIA = 0
+    T_PROXIMA_COSECHA_ESPINACA = 0
+    T_PROXIMA_COSECHA_MORRON = 0
+    DIA_PROXIMA_COSECHA_ZANAHORIA = 0
+    DIA_PROXIMA_COSECHA_ESPINACA = 0
+    DIA_PROXIMA_COSECHA_MORRON = 0
+    PORCENTAJE_ESPINACAS_VIVAS = 0
+    PORCENTAJE_MORRONES_VIVOS = 0
+    PORCENTAJE_ZANAHORIAS_VIVAS = 0
 
 def main(z, e, m) :
     global TIEMPO, LLUVIAS_Y_GRANIZO,PORCENTAJE_TIERRA_ZANAHORIA, PORCENTAJE_TIERRA_ESPINACA, PORCENTAJE_TIERRA_MORRON, MAYOR_GANANCIA, MENOR_GANANCIA
