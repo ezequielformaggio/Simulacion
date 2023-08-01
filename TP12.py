@@ -16,7 +16,7 @@ GASTO = 0
 
 # CONDICIONES INICIALES
 TIEMPO = 0
-TIEMPO_FINAL = 250
+TIEMPO_FINAL = 25
 
 def contratar_cosechadora(hectareas, tipo_cultivo) :
     global GASTO 
@@ -33,14 +33,14 @@ def sumar_gasto_cosechadora(tipo_cultivo, hectareas) :
         GASTO_MORRON += (hectareas) * GASTOS_POR_MAQUINA_POR_HECTAREA
 
 ###################################################### ZANAHORIA ########################################################
-PRECIO_M2_FERTILIZANTE_ZANAHORIA = 70
-PRECIO_M2_INSECTICIDA_ZANAHORIA = 70
+PRECIO_M2_FERTILIZANTE_ZANAHORIA = 5
+PRECIO_M2_INSECTICIDA_ZANAHORIA = 5
 DIA_PROXIMA_COSECHA_ZANAHORIA = 0
-PRECIO_M2_SEMILLAS_ZANAHORIA = 5
+PRECIO_M2_SEMILLAS_ZANAHORIA = 235
 INTERVALO_COSECHA_ZANAHORIA = 87
 PORCENTAJE_ZANAHORIAS_VIVAS = 0
 T_PROXIMA_COSECHA_ZANAHORIA = 0
-CANTIDAD_ZANAHORIAS_X_M2 = 144
+CANTIDAD_ZANAHORIAS_X_M2 = 30
 PROXIMO_RIEGO_ZANAHORIA = 0
 PRECIO_KILO_ZANAHORIA = 104
 BENEFICIO_ZANAHORIA = 0
@@ -72,8 +72,13 @@ def plantar_zanahoria(i) :
         DIA_PROXIMA_COSECHA_ZANAHORIA = (i + INTERVALO_COSECHA_ZANAHORIA) % 90 
         ZANAHORIAS_CRECIENDO = True
         PORCENTAJE_ZANAHORIAS_VIVAS = tasa_exito
-        GASTO += PRECIO_M2_SEMILLAS_ZANAHORIA * M2 * PORCENTAJE_TIERRA_ZANAHORIA
+        contratar_cosechadora(M2 * PORCENTAJE_TIERRA_ZANAHORIA / 10000, "Z")
+        GASTO += PRECIO_M2_SEMILLAS_ZANAHORIA * M2 * PORCENTAJE_TIERRA_ZANAHORIA 
+        GASTO +=  M2 * PORCENTAJE_TIERRA_ZANAHORIA * PRECIO_M2_FERTILIZANTE_ZANAHORIA 
+        GASTO +=  M2 * PORCENTAJE_TIERRA_ZANAHORIA * PRECIO_M2_INSECTICIDA_ZANAHORIA
         GASTO_ZANAHORIA += PRECIO_M2_SEMILLAS_ZANAHORIA * M2 * PORCENTAJE_TIERRA_ZANAHORIA
+        GASTO_ZANAHORIA += PRECIO_M2_FERTILIZANTE_ZANAHORIA * M2 * PORCENTAJE_TIERRA_ZANAHORIA
+        GASTO_ZANAHORIA += PRECIO_M2_INSECTICIDA_ZANAHORIA * M2 * PORCENTAJE_TIERRA_ZANAHORIA
     else :
         ZANAHORIAS_CRECIENDO = False
         if(PORCENTAJE_TIERRA_ZANAHORIA > 0) :
@@ -115,14 +120,14 @@ def fdp_insecticida_zanahoria() :
     return 5
 
 ###################################################### ESPINACA ########################################################
-PRECIO_M2_FERTILIZANTE_ESPINACA = 70
-PRECIO_M2_INSECTICIDA_ESPINACA = 70
+PRECIO_M2_FERTILIZANTE_ESPINACA = 5
+PRECIO_M2_INSECTICIDA_ESPINACA = 5
 DIA_PROXIMA_COSECHA_ESPINACA = 0
-PRECIO_M2_SEMILLAS_ESPINACA = 5
+PRECIO_M2_SEMILLAS_ESPINACA = 85
 INTERVALO_COSECHA_ESPINACA = 50
 PORCENTAJE_ESPINACAS_VIVAS = 0
 T_PROXIMA_COSECHA_ESPINACA = 0
-CANTIDAD_ESPINACAS_X_M2 = 90
+CANTIDAD_ESPINACAS_X_M2 = 16
 PROXIMO_RIEGO_ESPINACA = 0
 PRECIO_KILO_ESPINACA = 440
 BENEFICIO_ESPINACA = 0
@@ -153,8 +158,13 @@ def plantar_espinaca(i) :
         DIA_PROXIMA_COSECHA_ESPINACA = (i + INTERVALO_COSECHA_ESPINACA) % 90 
         ESPINACAS_CRECIENDO = True
         PORCENTAJE_ESPINACAS_VIVAS = tasa_exito
+        contratar_cosechadora(M2 * PORCENTAJE_TIERRA_ESPINACA / 10000, "E")
         GASTO += PRECIO_M2_SEMILLAS_ESPINACA * M2 * PORCENTAJE_TIERRA_ESPINACA
+        GASTO +=  M2 * PORCENTAJE_TIERRA_ESPINACA * PRECIO_M2_FERTILIZANTE_ESPINACA 
+        GASTO +=  M2 * PORCENTAJE_TIERRA_ESPINACA * PRECIO_M2_INSECTICIDA_ESPINACA
         GASTO_ESPINACA += PRECIO_M2_SEMILLAS_ESPINACA * M2 * PORCENTAJE_TIERRA_ESPINACA
+        GASTO_ESPINACA += PRECIO_M2_FERTILIZANTE_ESPINACA * M2 * PORCENTAJE_TIERRA_ESPINACA
+        GASTO_ESPINACA += PRECIO_M2_INSECTICIDA_ESPINACA * M2 * PORCENTAJE_TIERRA_ESPINACA
     else :
         ESPINACAS_CRECIENDO = False
         if(PORCENTAJE_TIERRA_ESPINACA > 0) :
@@ -196,14 +206,14 @@ def fdp_insecticida_espinaca() :
     return 5
 
 ###################################################### MORRON ########################################################
-PRECIO_M2_FERTILIZANTE_MORRON = 70
-PRECIO_M2_INSECTICIDA_MORRON = 70
+PRECIO_M2_FERTILIZANTE_MORRON = 5
+PRECIO_M2_INSECTICIDA_MORRON = 5
 INTERVALO_COSECHA_MORRON = 140
 DIA_PROXIMA_COSECHA_MORRON = 0
-PRECIO_M2_SEMILLAS_MORRON = 5
+PRECIO_M2_SEMILLAS_MORRON = 40
 PORCENTAJE_MORRONES_VIVOS = 0
 T_PROXIMA_COSECHA_MORRON = 0
-CANTIDAD_MORRONES_X_M2 = 6
+CANTIDAD_MORRONES_X_M2 = 4
 PRECIO_KILO_MORRON = 360
 PROXIMO_RIEGO_MORRON = 0
 BENEFICIO_MORRON = 0
@@ -231,15 +241,20 @@ def plantar_morron(i) :
     global DIA_PROXIMA_COSECHA_MORRON, GASTO, MORRONES_CRECIENDO, PORCENTAJE_MORRONES_VIVOS, T_PROXIMA_COSECHA_MORRON, GASTO_MORRON
     tasa_exito = tasa_de_exito_morron()
     if(tasa_exito > 0.65 and PORCENTAJE_TIERRA_MORRON > 0) :
-        T_PROXIMA_COSECHA_MORRON = math.trunc(i + INTERVALO_COSECHA_MORRON/90) + TIEMPO
+        T_PROXIMA_COSECHA_MORRON = math.trunc((i + INTERVALO_COSECHA_MORRON)/90) + TIEMPO
         DIA_PROXIMA_COSECHA_MORRON = (i + INTERVALO_COSECHA_MORRON) % 90 
         MORRONES_CRECIENDO = True
         PORCENTAJE_MORRONES_VIVOS = tasa_exito
+        contratar_cosechadora(M2 * PORCENTAJE_TIERRA_MORRON / 10000, "M")
         GASTO += PRECIO_M2_SEMILLAS_MORRON * M2 * PORCENTAJE_TIERRA_MORRON
+        GASTO +=  M2 * PORCENTAJE_TIERRA_MORRON * PRECIO_M2_FERTILIZANTE_MORRON 
+        GASTO +=  M2 * PORCENTAJE_TIERRA_MORRON * PRECIO_M2_INSECTICIDA_MORRON
         GASTO_MORRON += PRECIO_M2_SEMILLAS_MORRON * M2 * PORCENTAJE_TIERRA_MORRON
+        GASTO_MORRON += PRECIO_M2_FERTILIZANTE_MORRON * M2 * PORCENTAJE_TIERRA_MORRON
+        GASTO_MORRON += PRECIO_M2_INSECTICIDA_MORRON * M2 * PORCENTAJE_TIERRA_MORRON
     else :
         MORRONES_CRECIENDO = False
-        if(PORCENTAJE_TIERRA_ESPINACA > 0) :
+        if(PORCENTAJE_TIERRA_MORRON > 0) :
             T_PROXIMA_COSECHA_MORRON = 9999
             DIA_PROXIMA_COSECHA_MORRON = 9999
 
@@ -259,7 +274,7 @@ def cosechar_morron() :
     BENEFICIO_MORRON += cosecha * PRECIO_KILO_MORRON
 
 def fdp_kilos_morron() :
-    return poisson.rvs(371.15, size=1)[0] / 1000
+    return poisson.rvs(412.15, size=1)[0] / 1000
 
 def tasa_de_exito_morron() :
     t = TIEMPO % 4
@@ -273,7 +288,7 @@ def tasa_de_exito_morron() :
         return random.uniform(0.66,1.0)
 
 def cantidad_de_morrones_por_planta() :
-    return random.randint(3,15)#norm.rvs(14.927, 220.82, size=1)[0] 
+    return random.randint(10,15)#norm.rvs(14.927, 220.82, size=1)[0] 
 
 def fdp_fertilizante_morron() :
     return 5
@@ -473,12 +488,12 @@ def escenarios() :
             main(0.5,0,0.5)
 
         print("Promedio de costo de funcionamiento anual:..................$", round(GASTO/TIEMPO*4))
-        print("Beneficio promedio anual:...................................$", round((BENEFICIO-GASTO)/TIEMPO*4))
-        print("Beneficio por venta de zanahoria promedio anual:............$", round((BENEFICIO_ZANAHORIA-GASTO_ZANAHORIA)/TIEMPO*4))
-        print("Beneficio por venta de espinaca promedio anual:.............$", round((BENEFICIO_ESPINACA-GASTO_ESPINACA)/TIEMPO*4))
-        print("Beneficio por venta de morron promedio anual:...............$", round((BENEFICIO_MORRON-GASTO_MORRON)/TIEMPO*4))
-        print("Mayor ganancia obtenida en un trimestre y su temporada:.....$", round(MAYOR_GANANCIA[0]), " ", temporada(MAYOR_GANANCIA[1]))
-        print("Menor ganancia obtenida en un trimestre y su temporada:.....$", round(MENOR_GANANCIA[0]), " ", temporada(MENOR_GANANCIA[1]))
+        print("Beneficio promedio anual:...................................$", round((BENEFICIO-GASTO)/TIEMPO*4)*.35)
+        print("Beneficio por venta de zanahoria promedio anual:............$", round((BENEFICIO_ZANAHORIA-GASTO_ZANAHORIA)/TIEMPO*4)*.35)
+        print("Beneficio por venta de espinaca promedio anual:.............$", round((BENEFICIO_ESPINACA-GASTO_ESPINACA)/TIEMPO*4)*.35)
+        print("Beneficio por venta de morron promedio anual:...............$", round((BENEFICIO_MORRON-GASTO_MORRON)/TIEMPO*4)*.35)
+        print("Mayor ganancia obtenida en un trimestre y su temporada:.....$", round(MAYOR_GANANCIA[0])*.35, " ", temporada(MAYOR_GANANCIA[1]))
+        print("Mayor perdida en un trimestre y su temporada:...............$", round(MENOR_GANANCIA[0]), " ", temporada(MENOR_GANANCIA[1]))
         print(" ")
         ESCENARIO += 1
         i += 1
